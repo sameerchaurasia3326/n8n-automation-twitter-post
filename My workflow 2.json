@@ -1,0 +1,243 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://feeds.feedburner.com/TheHackersNews",
+        "options": {}
+      },
+      "name": "Get Cybersecurity News (RSS)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -944,
+        64
+      ],
+      "id": "3802da6d-abb8-4ef0-9910-38a808c19b3e"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "XML to JSON",
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        64
+      ],
+      "id": "dcfdcb3a-1fde-4269-a227-d281cce27839"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "your-telegram-chat-id",
+        "message": "= Hi {{ $json.text }}",
+        "options": {}
+      },
+      "name": "Send Post for Review (Telegram)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        96
+      ],
+      "id": "1ee65699-dae1-45a9-a88c-a830acabd7c4",
+      "webhookId": "3f8512f8-fdfb-4fca-ba50-5515bc8fae29",
+      "credentials": {
+        "telegramApi": {
+          "id": "1Lx8JwTlk7PE5d8U",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.callback_query.data }}",
+              "value2": "approve_post"
+            }
+          ]
+        }
+      },
+      "name": "Check Approval",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        64
+      ],
+      "id": "3fe9b129-3f9c-48fd-923e-f9e43fce5a9e"
+    },
+    {
+      "parameters": {},
+      "name": "Start (Daily 9 AM)1",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        64
+      ],
+      "id": "e715b6f7-2ea1-4fab-872a-76e89b8d90d9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.rss.channel.description }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -608,
+        -112
+      ],
+      "id": "d8915a32-bf8b-4443-b895-508e755ba78b",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        144
+      ],
+      "id": "084e933e-0a67-46e5-89a9-ec82414a00f4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "AvNDEFxhFQ9nPG4w",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "uploadText",
+        "user": "Sameer",
+        "platform": [
+          "x"
+        ],
+        "title": "=Hello",
+        "xReplySettings": "everyone"
+      },
+      "type": "n8n-nodes-upload-post.uploadPost",
+      "typeVersion": 1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "7eb3bf5a-4a4a-48c0-95e6-f198ee23a755",
+      "name": "Upload Post",
+      "credentials": {
+        "uploadPostApi": {
+          "id": "44q7B1TF4kt0GXtC",
+          "name": "Upload Post account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Cybersecurity News (RSS)": {
+      "main": [
+        [
+          {
+            "node": "XML to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML to JSON": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Post for Review (Telegram)": {
+      "main": [
+        [
+          {
+            "node": "Check Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Approval": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Upload Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start (Daily 9 AM)1": {
+      "main": [
+        [
+          {
+            "node": "Get Cybersecurity News (RSS)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send Post for Review (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Post": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c0750aae-0480-4687-ab4f-c9b67696e970",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "68db61261f2e82268b7abd7fe56622fec01b1664a77e58504f443a503a7feaf7"
+  },
+  "id": "eaCTUoe9kxBieEak",
+  "tags": []
+}
